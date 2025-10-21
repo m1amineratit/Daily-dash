@@ -29,7 +29,7 @@ Features tech news aggregation, live Bitcoin price, Pomodoro timer, and personal
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/yourusername/dailydash.git
+    git clone https://github.com/m1amineratit/Daily-dash.git
     cd dailydash
     ```
 
