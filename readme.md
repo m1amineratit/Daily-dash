@@ -15,7 +15,7 @@ Features tech news aggregation, live Bitcoin price, Pomodoro timer, and personal
 
 ## Screenshots
 
-![Dashboard Screenshot](screenshots/dashboard.png)
+![Dashboard Screenshot](image.png)
 
 ## Getting Started
 
