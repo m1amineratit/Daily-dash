@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - DailyDash{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto">
+    <!-- Header -->
+    <header class="mb-10 animate-fade-in">
+        <h1 class="text-5xl md:text-6xl font-extrabold gradient-text mb-3">
+            Daily Dashboard
+        </h1>
+        <p class="text-slate-400 text-lg">Stay updated with the latest tech news, crypto prices, and your tasks</p>
+    </header>
+
+    <!-- Main Grid Layout -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Left Column -->
+        <div class="space-y-8">
+            <!-- Tech News Section -->
+            <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in glow-blue" style="animation-delay: 0.1s">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-white">Tech News</h2>
+                    <span class="px-3 py-1 text-xs font-semibold text-blue-400 bg-blue-400/10 rounded-full">Latest</span>
+                </div>
+                <div class="space-y-4">
+                    {% if news %}
+                        {% for article in news %}
+                        <a href="{{ article.link }}" target="_blank" class="block p-4 rounded-xl hover:bg-slate-800/50 transition-colors">
+                            <div class="flex items-start gap-4">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-semibold text-blue-400 uppercase tracking-wider">
+                                            {{ article.source }}
+                                        </span>
+                                    </div>
+                                    <h3 class="text-white font-medium text-base leading-relaxed">
+                                        {{ article.title }}
+                                    </h3>
+                                </div>
+                                <svg class="w-5 h-5 text-slate-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
+                                </svg>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8">
+                            <p class="text-slate-400">No news available at the moment</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Tasks Section -->
+            <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in glow-green" style="animation-delay: 0.2s">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-2xl font-bold text-white">Recent Tasks</h2>
+                    <a href="{% url 'add_task' %}" class="px-4 py-2 text-sm font-medium text-emerald-400 bg-emerald-400/10 rounded-xl hover:bg-emerald-400/20 transition-colors">
+                        Add Task
+                    </a>
+                </div>
+                <div class="space-y-4">
+                    {% if tasks %}
+                        {% for task in tasks %}
+                        <div class="flex items-center gap-4 p-4 rounded-xl bg-slate-800/40">
+                            <input type="checkbox" class="custom-checkbox" 
+                                   data-task-id="{{ task.id }}"
+                                   {% if task.completed %}checked{% endif %}>
+                            <div class="flex-1">
+                                <p class="text-white font-medium {% if task.completed %}line-through opacity-50{% endif %}">
+                                    {{ task.title }}
+                                </p>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <a href="{% url 'update_task' task.id %}" class="p-2 text-slate-400 hover:text-blue-400 transition-colors">
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                                    </svg>
+                                </a>
+                                <form method="POST" action="{% url 'delete_task' task.id %}" class="inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="p-2 text-slate-400 hover:text-red-400 transition-colors">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                        </svg>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-8">
+                            <p class="text-slate-400">No tasks yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column -->
+        <div class="space-y-8">
+            <!-- Bitcoin Widget -->
+            <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in glow-orange" style="animation-delay: 0.3s">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white">Bitcoin Price</h2>
+                    <span class="px-3 py-1 text-xs font-semibold text-orange-400 bg-orange-400/10 rounded-full">Live</span>
+                </div>
+                <div class="space-y-6">
+                    <!-- Price -->
+                    <div class="text-center">
+                        <p id="bitcoin-price" class="text-4xl font-bold text-white mb-2">{{ bitcoin_price }}</p>
+                        <p id="bitcoin-change" class="text-lg font-medium {% if '-' in bitcoin_change %}text-red-400{% else %}text-green-400{% endif %}">
+                            {{ bitcoin_change }}
+                        </p>
+                    </div>
+                    
+                    <!-- Market Stats -->
+                    <div class="grid grid-cols-2 gap-4 mt-8">
+                        <div class="p-4 rounded-xl bg-slate-800/40">
+                            <p class="text-sm text-slate-400 mb-1">Market Cap</p>
+                            <p id="market-price" class="text-lg font-medium text-white">{{ market_price }}</p>
+                        </div>
+                        <div class="p-4 rounded-xl bg-slate-800/40">
+                            <p class="text-sm text-slate-400 mb-1">24h Volume</p>
+                            <p id="volum-price" class="text-lg font-medium text-white">{{ volum_price }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pomodoro Timer Card -->
+            <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in glow-blue" style="animation-delay: 0.4s">
+                <div class="flex flex-col items-center justify-center">
+                    <h2 class="text-2xl font-bold gradient-text mb-4">Focus Timer</h2>
+                    <div id="pomodoro-clock" class="relative flex items-center justify-center w-48 h-48 mb-6">
+                        <svg class="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 200 200">
+                            <!-- Dashed background circle -->
+                            <circle cx="100" cy="100" r="90" fill="none" 
+                                    stroke="#60a5fa" stroke-width="4" 
+                                    stroke-dasharray="4,8" opacity="0.2"/>
+                            <!-- Progress circle -->
+                            <circle id="pomodoro-progress" 
+                                    cx="100" cy="100" r="90" 
+                                    fill="none" 
+                                    stroke="#60a5fa" 
+                                    stroke-width="4"
+                                    stroke-linecap="round" 
+                                    stroke-dasharray="565.48" 
+                                    stroke-dashoffset="0" />
+                        </svg>
+                        <span id="pomodoro-time" class="text-5xl font-extrabold text-blue-400 drop-shadow-lg font-mono z-10">
+                            25:00
+                        </span>
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="pomodoro-start" class="px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold rounded-xl shadow-lg hover:from-blue-600 hover:to-blue-700 transition-all">
+                            Start
+                        </button>
+                        <button id="pomodoro-pause" class="px-6 py-3 bg-blue-500/20 text-blue-400 font-bold rounded-xl shadow-lg hover:bg-blue-500/40 transition-all">
+                            Pause
+                        </button>
+                        <button id="pomodoro-cancel" class="px-6 py-3 bg-slate-800 text-blue-400 font-bold rounded-xl shadow-lg hover:bg-blue-900 transition-all">
+                            Cancel
+                        </button>
+                    </div>
+                    <div id="pomodoro-status" class="mt-4 text-sm text-slate-400 text-center"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // Task completion toggle
+    document.querySelectorAll('.custom-checkbox').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const taskId = this.dataset.taskId;
+            fetch(`/tasks/toggle/${taskId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                },
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                const taskText = this.parentElement.querySelector('p');
+                if (this.checked) {
+                    taskText.classList.add('line-through', 'opacity-50');
+                } else {
+                    taskText.classList.remove('line-through', 'opacity-50');
+                }
+            })
+            .catch(error => console.error('Error:', error));
+        });
+    });
+
+    // Update Bitcoin price
+    function updateBitcoinPrice() {
+        fetch("{% url 'bitcoin_price_api' %}")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('bitcoin-price').textContent = data.bitcoin_price;
+                document.getElementById('bitcoin-change').textContent = data.bitcoin_change;
+                document.getElementById('market-price').textContent = data.market_price;
+                document.getElementById('volum-price').textContent = data.volum_price;
+            });
+    }
+
+    setInterval(updateBitcoinPrice, 60000);
+
+    // Pomodoro Timer
+    const pomodoroDuration = 25 * 60;
+    let timer = null;
+    let timeLeft = localStorage.getItem('pomodoro_timeLeft') ? parseInt(localStorage.getItem('pomodoro_timeLeft')) : pomodoroDuration;
+    let isRunning = localStorage.getItem('pomodoro_isRunning') === 'true';
+    let isPaused = localStorage.getItem('pomodoro_isPaused') === 'true';
+
+    const startBtn = document.getElementById('pomodoro-start');
+    const pauseBtn = document.getElementById('pomodoro-pause');
+    const cancelBtn = document.getElementById('pomodoro-cancel');
+    const statusDiv = document.getElementById('pomodoro-status');
+    const timeDisplay = document.getElementById('pomodoro-time');
+    const progressCircle = document.getElementById('pomodoro-progress');
+    const circleLength = 2 * Math.PI * 90;
+
+    function updateTimerDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        timeDisplay.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+        const progress = ((pomodoroDuration - timeLeft) / pomodoroDuration) * circleLength;
+        progressCircle.setAttribute('stroke-dasharray', circleLength);
+        progressCircle.setAttribute('stroke-dashoffset', circleLength - progress);
+        localStorage.setItem('pomodoro_timeLeft', timeLeft);
+        localStorage.setItem('pomodoro_isRunning', isRunning);
+        localStorage.setItem('pomodoro_isPaused', isPaused);
+    }
+
+    function startTimer() {
+        if (isRunning) return;
+        isRunning = true;
+        isPaused = false;
+        statusDiv.textContent = 'Focus mode: ON';
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        cancelBtn.disabled = false;
+        pauseBtn.textContent = 'Pause';
+        timer = setInterval(() => {
+            if (!isPaused && timeLeft > 0) {
+                timeLeft--;
+                updateTimerDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    timer = null;
+                    isRunning = false;
+                    statusDiv.textContent = 'Focus mode: OFF';
+                    startBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    cancelBtn.disabled = true;
+                    pauseBtn.textContent = 'Pause';
+                    setTimeout(() => {
+                        statusDiv.textContent = '';
+                    }, 5000);
+                }
+            }
+        }, 1000);
+        localStorage.setItem('pomodoro_isRunning', true);
+        localStorage.setItem('pomodoro_isPaused', false);
+    }
+
+    function pauseTimer() {
+        if (!isRunning) return;
+        isPaused = !isPaused;
+        if (isPaused) {
+            statusDiv.textContent = 'Paused';
+            pauseBtn.textContent = 'Resume';
+        } else {
+            statusDiv.textContent = 'Focus mode: ON';
+            pauseBtn.textContent = 'Pause';
+        }
+        localStorage.setItem('pomodoro_isPaused', isPaused);
+    }
+
+    function cancelTimer() {
+        if (timer) {
+            clearInterval(timer);
+            timer = null;
+        }
+        isRunning = false;
+        isPaused = false;
+        timeLeft = pomodoroDuration;
+        updateTimerDisplay();
+        statusDiv.textContent = '';
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        cancelBtn.disabled = true;
+        pauseBtn.textContent = 'Pause';
+        localStorage.setItem('pomodoro_timeLeft', pomodoroDuration);
+        localStorage.setItem('pomodoro_isRunning', false);
+        localStorage.setItem('pomodoro_isPaused', false);
+    }
+
+    startBtn.addEventListener('click', startTimer);
+    pauseBtn.addEventListener('click', pauseTimer);
+    cancelBtn.addEventListener('click', cancelTimer);
+
+    updateTimerDisplay();
+    if (isRunning) {
+        startBtn.disabled = true;
+        pauseBtn.disabled = false;
+        cancelBtn.disabled = false;
+        if (isPaused) {
+            pauseBtn.textContent = 'Resume';
+            statusDiv.textContent = 'Paused';
+        } else {
+            pauseBtn.textContent = 'Pause';
+            statusDiv.textContent = 'Focus mode: ON';
+        }
+        if (!timer) {
+            timer = setInterval(() => {
+                if (!isPaused && timeLeft > 0) {
+                    timeLeft--;
+                    updateTimerDisplay();
+                    if (timeLeft <= 0) {
+                        clearInterval(timer);
+                        timer = null;
+                        isRunning = false;
+                        statusDiv.textContent = 'Focus mode: OFF';
+                        startBtn.disabled = false;
+                        pauseBtn.disabled = true;
+                        cancelBtn.disabled = true;
+                        pauseBtn.textContent = 'Pause';
+                        setTimeout(() => {
+                            statusDiv.textContent = '';
+                        }, 5000);
+                    }
+                }
+            }, 1000);
+        }
+    } else {
+        startBtn.disabled = false;
+        pauseBtn.disabled = true;
+        cancelBtn.disabled = true;
+        pauseBtn.textContent = 'Pause';
+    }
+</script>
+{% endblock %}

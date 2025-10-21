@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Login - DailyDash{% endblock %}
+
+{% block content %}
+<div class="min-h-[80vh] flex items-center justify-center">
+    <div class="w-full max-w-md">
+        <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in">
+            <!-- Header -->
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold gradient-text">Welcome Back</h1>
+                <p class="text-slate-400 mt-2">Sign in to continue to DailyDash</p>
+            </div>
+
+            <!-- Error Messages -->
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 mb-6 rounded-xl bg-red-500/10 border border-red-500/20">
+                        <p class="text-red-400 text-sm">{{ message }}</p>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Login Form -->
+            <form method="POST" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Username Input -->
+                <div>
+                    <label for="id_username" class="block text-sm font-medium text-slate-400 mb-2">
+                        Username
+                    </label>
+                    <input type="text" 
+                           name="username" 
+                           id="id_username"
+                           required
+                           class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                                  text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 
+                                  focus:ring-blue-500 focus:ring-opacity-50 transition-all
+                                  hover:border-slate-600">
+                </div>
+
+                <!-- Password Input -->
+                <div>
+                    <label for="id_password" class="block text-sm font-medium text-slate-400 mb-2">
+                        Password
+                    </label>
+                    <input type="password" 
+                           name="password" 
+                           id="id_password"
+                           required
+                           class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                                  text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 
+                                  focus:ring-blue-500 focus:ring-opacity-50 transition-all
+                                  hover:border-slate-600">
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" 
+                        class="w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white
+                               font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 
+                               transition-all duration-200 transform hover:-translate-y-1
+                               focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                               focus:ring-offset-slate-900">
+                    Sign In
+                </button>
+
+                <!-- Register Link -->
+                <p class="text-center text-slate-400">
+                    Don't have an account? 
+                    <a href="{% url 'register' %}" class="text-blue-400 hover:text-blue-300 transition-colors">
+                        Register here
+                    </a>
+                </p>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

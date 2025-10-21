@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Daily Dashboard{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: rgb(15, 23, 42);
+            color: #fff;
+        }
+        
+        .glass-card {
+            background: rgba(17, 25, 40, 0.75);
+            backdrop-filter: blur(16px);
+            transition: transform 0.2s ease;
+        }
+
+        .hover-lift:hover {
+            transform: translateY(-5px);
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .nav-link {
+            color: #94a3b8;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: rgba(148, 163, 184, 0.1);
+            color: #fff;
+        }
+
+        .nav-link.active {
+            background: rgba(96, 165, 250, 0.1);
+            color: #60a5fa;
+        }
+
+        .glow-blue { box-shadow: 0 0 30px rgba(96, 165, 250, 0.1); }
+        .glow-green { box-shadow: 0 0 30px rgba(74, 222, 128, 0.1); }
+        .glow-orange { box-shadow: 0 0 30px rgba(251, 146, 60, 0.1); }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="min-h-screen flex flex-col bg-slate-900">
+    <!-- Navbar -->
+    <nav class="glass-card sticky top-0 z-50 border-b border-slate-800/50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Logo - Always visible -->
+                <div class="flex items-center">
+                    <a href="{% url 'dashboard' %}" class="flex items-center space-x-3">
+                        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/>
+                        </svg>
+                        <span class="text-xl font-bold gradient-text">DailyDash</span>
+                    </a>
+                </div>
+                
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-4">
+                    {% if user.is_authenticated %}
+                        <!-- Links for authenticated users -->
+                        <a href="{% url 'dashboard' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                            Dashboard
+                        </a>
+                        <a href="{% url 'add_task' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'add_task' %}active{% endif %}">
+                            Add Task
+                        </a>
+                        <a href="{% url 'tasks' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'tasks' %}active{% endif %}">
+                            Tasks
+                        </a>
+                        <div class="flex items-center space-x-4 ml-4 pl-4 border-l border-slate-700">
+                            <span class="text-sm text-slate-400">{{ user.username }}</span>
+                            <a href="{% url 'logout' %}" 
+                               class="px-4 py-2 text-sm font-medium text-red-400 bg-red-400/10 rounded-xl 
+                                      hover:bg-red-400/20 transition-colors">
+                                Logout
+                            </a>
+                        </div>
+                    {% else %}
+                        <!-- Links for non-authenticated users -->
+                        <a href="{% url 'login' %}" 
+                           class="nav-link {% if request.resolver_match.url_name == 'login' %}active{% endif %}">
+                            Login
+                        </a>
+                        <a href="{% url 'register' %}" 
+                           class="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white
+                                  font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 
+                                  transition-all duration-200">
+                            Register
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="flex-grow p-4 md:p-8">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="glass-card border-t border-slate-800/50 py-6">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center">
+                <p class="text-slate-400">&copy; 2024 DailyDash. All rights reserved.</p>
+                <div class="flex space-x-6">
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors">
+                        Privacy Policy
+                    </a>
+                    <a href="#" class="text-slate-400 hover:text-blue-400 transition-colors">
+                        Terms of Service
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

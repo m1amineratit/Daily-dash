@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Update Task - DailyDash{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="glass-card rounded-3xl p-8 hover-lift animate-fade-in">
+        <h2 class="text-3xl font-bold gradient-text mb-6">Update Task</h2>
+        <form method="POST" class="space-y-6">
+            {% csrf_token %}
+            <!-- Title Input -->
+            <div>
+                <label for="title" class="block text-sm font-medium text-slate-400 mb-2">Task Title</label>
+                <input type="text"
+                       name="title"
+                       id="title"
+                       value="{{ task.title }}"
+                       required
+                       class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                              text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2 
+                              focus:ring-blue-500 focus:ring-opacity-50 transition-all
+                              hover:border-slate-600">
+            </div>
+            <!-- Description Input -->
+            <div>
+                <label for="description" class="block text-sm font-medium text-slate-400 mb-2">Description</label>
+                <textarea name="description"
+                          id="description"
+                          rows="4"
+                          class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                                 text-white placeholder-slate-400 focus:border-blue-500 focus:ring-2
+                                 focus:ring-blue-500 focus:ring-opacity-50 transition-all resize-none
+                                 hover:border-slate-600">{{ task.description }}</textarea>
+            </div>
+            <!-- Date and Time Inputs -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="date" class="block text-sm font-medium text-slate-400 mb-2">Date</label>
+                    <input type="date"
+                           name="date"
+                           id="date"
+                           value="{{ task.date }}"
+                           required
+                           class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                                  text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+                                  focus:ring-opacity-50 transition-all hover:border-slate-600">
+                </div>
+                <div>
+                    <label for="time" class="block text-sm font-medium text-slate-400 mb-2">Time</label>
+                    <input type="time"
+                           name="time"
+                           id="time"
+                           value="{{ task.time|time:'H:i' }}"
+                           required
+                           class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                                  text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+                                  focus:ring-opacity-50 transition-all hover:border-slate-600">
+                </div>
+            </div>
+            <!-- Status Selection -->
+            <div>
+                <label for="status" class="block text-sm font-medium text-slate-400 mb-2">Status</label>
+                <select name="status"
+                        id="status"
+                        required
+                        class="w-full px-4 py-3 bg-slate-800/50 border border-slate-700 rounded-xl
+                               text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500
+                               focus:ring-opacity-50 transition-all appearance-none hover:border-slate-600">
+                    <option value="Pending" {% if task.status == "Pending" %}selected{% endif %}>Pending</option>
+                    <option value="Done" {% if task.status == "Done" %}selected{% endif %}>Done</option>
+                </select>
+            </div>
+            <!-- Submit Button -->
+            <button type="submit"
+                    class="w-full py-4 px-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white
+                           font-medium rounded-xl hover:from-blue-600 hover:to-blue-700 
+                           transition-all duration-200 transform hover:-translate-y-1
+                           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                           focus:ring-offset-slate-900">
+                Update Task
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
