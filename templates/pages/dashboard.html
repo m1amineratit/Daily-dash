@@ -38,6 +38,8 @@
                                     <h3 class="text-white font-medium text-base leading-relaxed">
                                         {{ article.title }}
                                     </h3>
+                                    <hr>
+                                    <p class="text-sm text-gray-100">{{ article.summary }}</p>
                                 </div>
                                 <svg class="w-5 h-5 text-slate-500 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
@@ -110,9 +112,9 @@
                 <div class="space-y-6">
                     <!-- Price -->
                     <div class="text-center">
-                        <p id="bitcoin-price" class="text-4xl font-bold text-white mb-2">{{ bitcoin_price }}</p>
+                        <p id="bitcoin-price" class="text-4xl font-bold text-white mb-2">${{ btc_data.price }}</p>
                         <p id="bitcoin-change" class="text-lg font-medium {% if '-' in bitcoin_change %}text-red-400{% else %}text-green-400{% endif %}">
-                            {{ bitcoin_change }}
+                            {{ btc_data.change_24h }}
                         </p>
                     </div>
                     
@@ -120,11 +122,11 @@
                     <div class="grid grid-cols-2 gap-4 mt-8">
                         <div class="p-4 rounded-xl bg-slate-800/40">
                             <p class="text-sm text-slate-400 mb-1">Market Cap</p>
-                            <p id="market-price" class="text-lg font-medium text-white">{{ market_price }}</p>
+                            <p id="market-price" class="text-lg font-medium text-white">${{ btc_data.market_cap }}</p>
                         </div>
                         <div class="p-4 rounded-xl bg-slate-800/40">
                             <p class="text-sm text-slate-400 mb-1">24h Volume</p>
-                            <p id="volum-price" class="text-lg font-medium text-white">{{ volum_price }}</p>
+                            <p id="volum-price" class="text-lg font-medium text-white">${{ btc_data.volume_24 }}</p>
                         </div>
                     </div>
                 </div>
@@ -214,19 +216,6 @@
         });
     });
 
-    // Update Bitcoin price
-    function updateBitcoinPrice() {
-        fetch("{% url 'bitcoin_price_api' %}")
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('bitcoin-price').textContent = data.bitcoin_price;
-                document.getElementById('bitcoin-change').textContent = data.bitcoin_change;
-                document.getElementById('market-price').textContent = data.market_price;
-                document.getElementById('volum-price').textContent = data.volum_price;
-            });
-    }
-
-    setInterval(updateBitcoinPrice, 60000);
 
     // Pomodoro Timer
     const pomodoroDuration = 25 * 60;

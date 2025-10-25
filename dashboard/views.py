@@ -6,6 +6,46 @@ from .models import Task, FocusSession
 from .forms import TaskForm
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_GET
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+NEWS_API_KEY=os.getenv("NEWS_API_KEY")
+JINA_KEY=os.getenv("JINA_KEY")
+OPENROUTER_KEY=os.getenv("OPENROUTER_KEY")
+API_KEY="API_KEY"
+
+def summrize_content(content):
+    ai_response = requests.post(
+        "https://openrouter.ai/api/v1/chat/completions",
+        headers = {
+            "Authorization" : f"Bearer {OPENROUTER_KEY}",
+            "Content-Type" : "application/json",
+        },
+        json={
+            "model" : "meta-llama/llama-4-maverick:free",
+            "messages" : [
+                {
+                    "role" : "user",
+                    "content" : f"Summarize this article: \n\n{content}"
+                }
+            ],
+            "temperature" : 0.2,
+            "max_tokens" : 300,
+        },
+        timeout=60
+    )
+    if ai_response.status_code != 200:
+        print("Failed to parse AI response")
+        print(OPENROUTER_KEY)
+    try:
+        ai_data = ai_response.json()
+        return ai_data["choices"][0]["message"]["content"].strip()
+    except Exception as e:
+        print("Failed to parse AI response")
+        print("RAW:", ai_response.text)
+        return None
 
 @login_required
 def dashboard(request):
@@ -20,11 +60,14 @@ def dashboard(request):
 
         if news_data.get("status") == "ok":
             for article in news_data["articles"][:3]:
-                top_news.append({
-                    "title": article.get("title"),
-                    "link": article.get("url"),
-                    "source": article.get("source", {}).get("name", "Unknown")
-                })
+                summary = summrize_content(article.get("description", "") or article.get("title", ""))
+                if summary:
+                    top_news.append({
+                        "title": article.get("title"),
+                        "link": article.get("url"),
+                        "summary" : summary,
+                        "source": article.get("source", {}).get("name", "Unknown")
+                    })
         else:
             top_news = []
     except Exception as e:
@@ -32,38 +75,36 @@ def dashboard(request):
         top_news = []
 
     # --- Fetch Bitcoin price and 24h change ---
-    btc_url = "https://coinmarketcap.com/currencies/bitcoin/"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                      " AppleWebKit/537.36 (KHTML, like Gecko)"
-                      " Chrome/120.0.0.0 Safari/537.36"
+        "accept" : "application/json",
+        "CB-VERSION" : "2023-10-01",
+        "Authorization" : f"Bearer {API_KEY}"
     }
-    btc_response = requests.get(btc_url, headers=headers)
-    btc_soup = BeautifulSoup(btc_response.text, 'html.parser')
+    btc_url = "https://api.coingecko.com/api/v3/coins/bitcoin"
     
-    price_span = btc_soup.find('span', class_='sc-65e7f566-0 esyGGG base-text')
-    bitcoin_price = price_span.text if price_span else "N/A"
+    response = requests.get(btc_url, headers=headers)
 
-    volum_span = btc_soup.find('div', class_="BasePopover_base__T5yOf")
-    if volum_span:
-        volum_price = volum_span.find("span").get_text(strip=True)
+    btc_data = None
+    if response.status_code == 200:
+        data = response.json()
+        btc_data = {
+            "price": data["market_data"]["current_price"]["usd"],
+            "change_24h": data["market_data"]["price_change_percentage_24h"],
+            "volume_24": data["market_data"]["total_volume"]["usd"],
+            "market_cap": data["market_data"]["market_cap"]["usd"]
+        }
+    else:
+        print("Error fetching data:", response.text)
+        btc_data = None
+
         
-    market_span = btc_soup.find('div', class_='CoinMetrics_overflow-content__tlFu7')
-    market_price = market_span.text if market_span else "N/A"
-
-    change_p = btc_soup.find('p', class_='sc-71024e3e-0 sc-9e7b7322-1 bgxfSG dXVXKV change-text')
-    bitcoin_change = change_p.text if change_p else "N/A"
-
     # --- Fetch last 3 tasks ---
     tasks = Task.objects.filter(user=request.user).order_by('-created_at')[:3]
 
     context = {
         'news': top_news,
-        'bitcoin_price': bitcoin_price,
-        'bitcoin_change': bitcoin_change,
-        'market_price' : market_price,
-        'volum_price' : volum_price,
-        'tasks': tasks
+        'tasks': tasks,
+        "btc_data" : btc_data
     }
 
     return render(request, 'pages/dashboard.html', context)
@@ -122,38 +163,8 @@ def delete_task(request, task_id):
     
     return render(request, 'pages/delete_task_confirm.html', {'task': task})
 
+@login_required
 def save_session(request):
     if request.method == 'POST':
         FocusSession.objects.create(completed=True)
         return JsonResponse({'status' : 'success'})
-
-@require_GET
-def bitcoin_price_api(request):
-    btc_url = "https://coinmarketcap.com/currencies/bitcoin/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                      " AppleWebKit/537.36 (KHTML, like Gecko)"
-                      " Chrome/120.0.0.0 Safari/537.36"
-    }
-    btc_response = requests.get(btc_url, headers=headers)
-    btc_soup = BeautifulSoup(btc_response.text, 'html.parser')
-    
-    # Update these selectors based on the current HTML structure!
-    price_span = btc_soup.find('div', class_='priceValue')
-    bitcoin_price = price_span.text if price_span else "N/A"
-
-    change_span = btc_soup.find('span', class_='sc-15yy2pl-0 feeyND')
-    bitcoin_change = change_span.text if change_span else "N/A"
-
-    market_span = btc_soup.find('div', string="Market Cap")
-    market_price = market_span.find_next('div').text if market_span else "N/A"
-
-    volum_span = btc_soup.find('div', string="Volume 24h")
-    volum_price = volum_span.find_next('div').text if volum_span else "N/A"
-
-    return JsonResponse({
-        'bitcoin_price': bitcoin_price,
-        'bitcoin_change': bitcoin_change,
-        'market_price': market_price,
-        'volum_price': volum_price,
-    })
